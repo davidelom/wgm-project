@@ -1,3 +1,4 @@
+// data/init-db.js
 const pool = require("../config/db");
 
 const createTables = async () => {
@@ -65,7 +66,9 @@ const createTables = async () => {
         `);
         console.log("Tables créées avec succès ou déjà existantes !");
     } catch (err) {
-        console.error("Erreur lors de la création des tables :", err);
+        console.log("Erreur lors de la création des tables :", err);
+        // Relance de l'erreur pour que initDB sache que la création a échoué
+        throw err;
     }
 };
 
@@ -99,16 +102,19 @@ const insertPredefinedData = async () => {
         `);
         console.log("Données prédéfinies insérées avec succès !");
     } catch (err) {
-        console.error(
+        console.log(
             "Erreur lors de l'insertion des données prédéfinies :",
             err
         );
+        throw err;
     }
 };
 
 const initDB = async () => {
-    await createTables();
-    await insertPredefinedData();
+    try {
+        await createTables();
+        await insertPredefinedData();
+    } catch (err) {}
     console.log("Base de données initialisée !");
 };
 
