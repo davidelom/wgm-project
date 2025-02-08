@@ -7,6 +7,11 @@ const cors = require("cors");
 const port = process.env.PORT || 3000;
 
 const playerRoute = require("./routes/player-route");
+const characterRoute = require("./routes/character-route");
+const roleRoute = require("./routes/role-route");
+const classRoute = require("./routes/class-route");
+const partyRoute = require("./routes/party-route");
+const tournamentRoute = require("./routes/tournament-route");
 const errorHandler = require("./middlewares/errorHandler");
 const { initDB } = require("./data/init-db");
 
@@ -17,6 +22,11 @@ app.use(cors());
 
 // Routes
 app.use("/players", playerRoute);
+app.use("/characters", characterRoute);
+app.use("/roles", roleRoute);
+app.use("/classes", classRoute);
+app.use("/parties", partyRoute);
+app.use("/tournaments", tournamentRoute);
 
 // Create DB Tables before starting the server
 initDB();

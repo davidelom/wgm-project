@@ -1,6 +1,16 @@
 // data/init-db.js
 const pool = require("../config/db");
 
+const createDatabase = async () => {
+    try {
+        await pool.query("CREATE DATABASE wow_db");
+        console.log("Base de données créée avec succès !");
+    } catch (err) {
+        console.log("Erreur lors de la création de la base de données :", err);
+        throw err;
+    }
+};
+
 const createTables = async () => {
     try {
         await pool.query(`
@@ -16,7 +26,7 @@ const createTables = async () => {
                 label VARCHAR(50) NOT NULL UNIQUE
             );
 
-            CREATE TABLE IF NOT EXISTS class (
+            CREATE TABLE IF NOT EXISTS classes (
                 id SERIAL PRIMARY KEY,
                 label VARCHAR(50) NOT NULL UNIQUE
             );
@@ -24,7 +34,7 @@ const createTables = async () => {
             CREATE TABLE IF NOT EXISTS characters (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
-                class_id INT REFERENCES class(id) ON DELETE CASCADE,
+                class_id INT REFERENCES classes(id) ON DELETE CASCADE,
                 role_id INT REFERENCES roles(id) ON DELETE CASCADE,
                 ilvl INT CHECK (ilvl BETWEEN 0 AND 645),
                 rio INT CHECK (rio BETWEEN 0 AND 4500)
@@ -43,13 +53,15 @@ const createTables = async () => {
             );
 
             CREATE TABLE IF NOT EXISTS registered (
-                id SERIAL PRIMARY KEY,
-                registration_date DATE NOT NULL
+                tournament_id INT REFERENCES tournament(id) ON DELETE CASCADE,
+                party_id INT REFERENCES parties(id) ON DELETE CASCADE,
+                registration_date DATE NOT NULL,
+                PRIMARY KEY (tournament_id, party_id)
             );
 
             CREATE TABLE IF NOT EXISTS parties (
                 id SERIAL PRIMARY KEY,
-                captain_id INT REFERENCES players(id) ON DELETE SET NULL
+                party_name VARCHAR(255) NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS compose (
@@ -60,14 +72,13 @@ const createTables = async () => {
 
             CREATE TABLE IF NOT EXISTS can_be (
                 role_id INT REFERENCES roles(id) ON DELETE CASCADE,
-                class_id INT REFERENCES class(id) ON DELETE CASCADE,
+                class_id INT REFERENCES classes(id) ON DELETE CASCADE,
                 PRIMARY KEY (role_id, class_id)
             );
         `);
         console.log("Tables créées avec succès ou déjà existantes !");
     } catch (err) {
         console.log("Erreur lors de la création des tables :", err);
-        // Relance de l'erreur pour que initDB sache que la création a échoué
         throw err;
     }
 };
@@ -112,6 +123,7 @@ const insertPredefinedData = async () => {
 
 const initDB = async () => {
     try {
+        await createDatabase();
         await createTables();
         await insertPredefinedData();
     } catch (err) {}

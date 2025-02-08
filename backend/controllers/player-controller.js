@@ -7,14 +7,7 @@ const {
     getPlayerByEmailService,
 } = require("../models/player-model");
 const bcrypt = require("bcrypt");
-
-const handleResponse = (res, status, message, data = null) => {
-    res.status(status).json({
-        status,
-        message,
-        data,
-    });
-};
+const handleResponse = require("../utils/handle-response-function");
 
 const loginPlayer = async (req, res, next) => {
     const { email, password } = req.body;
