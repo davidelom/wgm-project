@@ -12,6 +12,18 @@ const getTournamentByIdService = async (id) => {
     return result.rows[0];
 };
 
+const getTournamentWithPartiesService = async (tournament_id) => {
+    const result = await pool.query(
+        `SELECT t.*, p.id AS party_id, p.party_name
+        FROM tournament t
+        LEFT JOIN registered r ON t.id = r.tournament_id
+        LEFT JOIN parties p ON r.party_id = p.id
+        WHERE t.id = $1`,
+        [tournament_id]
+    );
+    return result.rows;
+};
+
 const createTournamentService = async (start_date, end_date) => {
     const result = await pool.query(
         "INSERT INTO tournament (start_date, end_date) VALUES ($1, $2) RETURNING *",
@@ -59,4 +71,5 @@ module.exports = {
     createTournamentService,
     updateTournamentService,
     deleteTournamentService,
+    getTournamentWithPartiesService,
 };

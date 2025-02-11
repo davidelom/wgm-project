@@ -13,6 +13,15 @@ const getPlayerByIdService = async (id) => {
     return result.rows[0];
 };
 
+const getCharactersByPlayerService = async (player_id) => {
+    const result = await pool.query(
+        `SELECT c.* FROM characters c
+        JOIN belong_to b ON c.id = b.character_id
+        WHERE b.player_id = $1`,
+        [player_id]
+    );
+    return result.rows;
+};
 const getPlayerByEmailService = async (email) => {
     const result = await pool.query("SELECT * FROM players WHERE email = $1", [
         email,

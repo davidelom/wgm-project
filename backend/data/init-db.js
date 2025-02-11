@@ -86,7 +86,7 @@ const createTables = async () => {
 const insertPredefinedData = async () => {
     try {
         await pool.query(`
-            INSERT INTO class (label) VALUES
+            INSERT INTO classes (label) VALUES
                 ('Guerrier'), ('Paladin'), ('Chasseur'), ('Voleur'), ('Prêtre'), ('Chaman'), ('Mage'), 
                 ('Démoniste'), ('Moine'), ('Druide'), ('Chasseur de démon'), ('Chevalier de la mort'), ('Évocateur')
             ON CONFLICT (label) DO NOTHING;
@@ -123,10 +123,16 @@ const insertPredefinedData = async () => {
 
 const initDB = async () => {
     try {
-        await createDatabase();
+        // await createDatabase();
         await createTables();
         await insertPredefinedData();
-    } catch (err) {}
+    } catch (err) {
+        console.log(
+            "Erreur lors de l'initialisation de la base de données :",
+            err
+        );
+        throw err;
+    }
     console.log("Base de données initialisée !");
 };
 

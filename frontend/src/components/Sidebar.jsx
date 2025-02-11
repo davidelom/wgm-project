@@ -1,9 +1,10 @@
+import { Trophy, Users, BarChart2, Settings, Swords, User } from "lucide-react";
 import PropTypes from "prop-types";
-import { Trophy, Users, BarChart2, Settings, Swords } from "lucide-react";
 
 const menuItems = [
     { icon: Trophy, label: "Tournaments", value: "tournaments" },
     { icon: Users, label: "Teams", value: "teams" },
+    { icon: User, label: "Characters", value: "characters" },
     { icon: Swords, label: "Matches", value: "matches" },
     { icon: BarChart2, label: "Statistics", value: "statistics" },
     { icon: Settings, label: "Settings", value: "settings" },

@@ -1,42 +1,97 @@
-import { Users, Trophy, Shield, Star } from "lucide-react";
+import { Users, Trophy, Shield } from "lucide-react";
 import PropTypes from "prop-types";
+
+// Quelques avatars par défaut
+const defaultAvatars = [
+    "/images/default1.jpg",
+    "/images/default2.jpg",
+    "/images/default3.jpg",
+    // etc.
+];
+
 function TeamCard({
-    name,
-    members,
-    rating,
-    achievements,
+    partyId,
+    partyName,
+    characters,
     avatarUrl,
     classColors,
     roleIcons,
+    onDeleteTeam,
 }) {
+    if (!characters) {
+        characters = [];
+    }
+    // Calcul de la moyenne d’ilvl
+    let averageIlvl = 0;
+    let averageRio = 0;
+    if (characters && characters.length) {
+        averageIlvl = characters.length
+            ? Math.round(
+                  characters.reduce((sum, char) => sum + char.ilvl, 0) /
+                      characters.length
+              )
+            : 0;
+
+        averageRio = characters.length
+            ? Math.round(
+                  characters.reduce((sum, char) => sum + char.rio, 0) /
+                      characters.length
+              )
+            : 0;
+    }
+
+    // Calcul de la moyenne RIO
+
+    // Sélectionner un avatar par défaut si avatarUrl est absent
+    const randomIndex = Math.floor(Math.random() * defaultAvatars.length);
+    const fallbackAvatar = defaultAvatars[randomIndex];
+    const finalAvatarUrl = avatarUrl || fallbackAvatar;
+
     return (
         <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-500/50 transition-colors">
             <div className="p-6">
+                {/* En-tête : nom de l’équipe + nombre de membres */}
                 <div className="flex items-center gap-4 mb-4">
                     <div
-                        className="w-16 h-16 rounded-full bg-cover bg-center border-2 border-amber-500"
-                        style={{ backgroundImage: `url(${avatarUrl})` }}
+                        className="w-16 h-16 rounded-full bg-cover bg-center border-2 border-amber-500 shadow-sm"
+                        style={{
+                            backgroundImage: `url(${finalAvatarUrl})`,
+                        }}
                     />
                     <div>
-                        <h3 className="text-xl font-bold">{name}</h3>
+                        <h3 className="text-xl font-bold">{partyName}</h3>
                         <div className="flex items-center gap-2 text-gray-400">
                             <Users className="h-4 w-4" />
-                            <span>{members.length} Members</span>
+                            {characters && (
+                                <span>{characters.length} Members</span>
+                            )}
                         </div>
                     </div>
                 </div>
 
+                {/* Stats d’équipe */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Trophy className="h-4 w-4 text-amber-500" />
-                            <span className="text-gray-300">Rating</span>
+                            <span className="text-gray-300">Avg iLvl</span>
                         </div>
                         <span className="text-amber-500 font-bold">
-                            {rating}
+                            {averageIlvl}
                         </span>
                     </div>
 
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-amber-500" />
+                            <span className="text-gray-300">Avg RIO</span>
+                        </div>
+                        <span className="text-amber-500 font-bold">
+                            {averageRio}
+                        </span>
+                    </div>
+
+                    {/* Composition */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 mb-2">
                             <Shield className="h-4 w-4 text-amber-500" />
@@ -45,57 +100,124 @@ function TeamCard({
                             </span>
                         </div>
                         <div className="space-y-2">
-                            {members.map((member, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center justify-between text-sm"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-base">
-                                            {roleIcons[member.role]}
-                                        </span>
-                                        <span
-                                            className={`bg-gradient-to-r ${
-                                                classColors[member.class]
-                                            } bg-clip-text text-transparent font-medium`}
+                            {characters.map((member) => {
+                                const classInfo = classColors[member.class_id];
+                                if (!classInfo) {
+                                    // fallback si la classe n'est pas trouvée
+                                    return (
+                                        <div
+                                            key={member.character_id}
+                                            className="flex items-center justify-between text-sm"
                                         >
-                                            {member.name}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-base">
+                                                    {roleIcons[member.role_id]}
+                                                </span>
+                                                <span className="font-medium text-gray-100">
+                                                    {member.name}
+                                                </span>
+                                            </div>
+                                            <span className="text-gray-400">
+                                                iLvl {member.ilvl}, RIO{" "}
+                                                {member.rio}
+                                            </span>
+                                        </div>
+                                    );
+                                }
+                                const { gradient } = classInfo;
+                                const textStyle = gradient
+                                    ? {
+                                          background: `linear-gradient(to right, ${gradient.from}, ${gradient.to})`,
+                                          WebkitBackgroundClip: "text",
+                                          color: "transparent",
+                                      }
+                                    : {};
+                                return (
+                                    <div
+                                        key={member.character_id}
+                                        className="flex items-center justify-between text-sm"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-base">
+                                                {roleIcons[member.role_id]}
+                                            </span>
+                                            <span
+                                                style={textStyle}
+                                                className="font-medium"
+                                            >
+                                                {member.name}
+                                            </span>
+                                        </div>
+                                        <span className="text-gray-400">
+                                            iLvl {member.ilvl}, RIO {member.rio}
                                         </span>
                                     </div>
-                                    <span className="text-gray-400">
-                                        {member.classLabel}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Star className="h-4 w-4 text-amber-500" />
-                            <span className="text-gray-300">
-                                Recent Achievements
-                            </span>
-                        </div>
-                        <div className="space-y-1">
-                            {achievements.map((achievement, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center gap-2 text-sm text-gray-400"
-                                >
-                                    <Star className="h-3 w-3" />
-                                    <span>{achievement}</span>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-6 flex gap-2">
-                    <button className="flex-1 btn btn-primary">
+                {/* Boutons d'action */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                    <button
+                        className="
+              flex-1
+              bg-amber-600 
+              hover:bg-amber-700
+              text-white
+              font-semibold
+              rounded-md
+              px-3
+              py-2
+              text-sm
+              transition-colors
+              focus:outline-none 
+              focus:ring-2 
+              focus:ring-amber-400
+            "
+                    >
                         View Details
                     </button>
-                    <button className="btn btn-secondary">Challenge</button>
+
+                    <button
+                        className="
+              bg-blue-600 
+              hover:bg-blue-700
+              text-white
+              font-semibold
+              rounded-md
+              px-3
+              py-2
+              text-sm
+              transition-colors
+              focus:outline-none 
+              focus:ring-2 
+              focus:ring-blue-400
+            "
+                    >
+                        Challenge
+                    </button>
+
+                    <button
+                        className="
+              bg-red-600 
+              hover:bg-red-700
+              text-white
+              font-semibold
+              rounded-md
+              px-3
+              py-2
+              text-sm
+              transition-colors
+              focus:outline-none 
+              focus:ring-2 
+              focus:ring-red-400
+            "
+                        onClick={() => onDeleteTeam(partyId)}
+                    >
+                        Delete
+                    </button>
                 </div>
             </div>
         </div>
@@ -103,20 +225,22 @@ function TeamCard({
 }
 
 TeamCard.propTypes = {
-    name: PropTypes.string.isRequired,
-    members: PropTypes.arrayOf(
+    partyId: PropTypes.number.isRequired,
+    partyName: PropTypes.string.isRequired,
+    characters: PropTypes.arrayOf(
         PropTypes.shape({
+            character_id: PropTypes.number.isRequired,
             name: PropTypes.string.isRequired,
-            role: PropTypes.string.isRequired,
-            class: PropTypes.string.isRequired,
-            classLabel: PropTypes.string.isRequired,
+            class_id: PropTypes.number.isRequired,
+            role_id: PropTypes.number.isRequired,
+            ilvl: PropTypes.number.isRequired,
+            rio: PropTypes.number.isRequired,
         })
     ).isRequired,
-    rating: PropTypes.number.isRequired,
-    achievements: PropTypes.arrayOf(PropTypes.string).isRequired,
-    avatarUrl: PropTypes.string.isRequired,
-    classColors: PropTypes.objectOf(PropTypes.string).isRequired,
+    avatarUrl: PropTypes.string,
+    classColors: PropTypes.object.isRequired,
     roleIcons: PropTypes.objectOf(PropTypes.node).isRequired,
+    onDeleteTeam: PropTypes.func.isRequired,
 };
 
 export default TeamCard;

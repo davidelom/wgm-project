@@ -4,6 +4,8 @@ const {
     getCharacterByIdService,
     updateCharacterService,
     deleteCharacterService,
+    getCharactersByPlayerService,
+    addCharacterToPartyService,
 } = require("../models/character-model");
 
 const handleResponse = require("../utils/handle-response-function");
@@ -30,6 +32,30 @@ const createCharacter = async (req, res, next) => {
             201,
             "Character created successfully",
             newCharacter
+        );
+    } catch (err) {
+        next(err);
+    }
+};
+
+const addCharacterToParty = async (req, res, next) => {
+    try {
+        const { party_id, character_id } = req.body;
+
+        if (!party_id || !character_id) {
+            return handleResponse(res, 400, "Missing required fields");
+        }
+
+        const newComposition = await addCharacterToPartyService(
+            party_id,
+            character_id
+        );
+
+        handleResponse(
+            res,
+            201,
+            "Character added to party successfully",
+            newComposition
         );
     } catch (err) {
         next(err);
@@ -65,6 +91,33 @@ const getCharacterById = async (req, res, next) => {
         }
 
         handleResponse(res, 200, "Character retrieved successfully", character);
+    } catch (err) {
+        next(err);
+    }
+};
+
+const getCharactersByPlayer = async (req, res, next) => {
+    try {
+        const { player_id } = req.params;
+
+        const player = await getPlayerByIdService(player_id);
+
+        if (!player) {
+            return handleResponse(res, 404, "Player not found");
+        }
+
+        const characters = await getCharactersByPlayerService(player_id);
+
+        if (characters.length === 0) {
+            return handleResponse(res, 404, "No characters found");
+        }
+
+        handleResponse(
+            res,
+            200,
+            "Characters retrieved successfully",
+            characters
+        );
     } catch (err) {
         next(err);
     }
@@ -113,4 +166,6 @@ module.exports = {
     getCharacterById,
     updateCharacter,
     deleteCharacter,
+    getCharactersByPlayer,
+    addCharacterToParty,
 };

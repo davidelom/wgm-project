@@ -3,6 +3,7 @@ import { Shield } from "lucide-react";
 import { authApi } from "../lib/auth";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
+
 export default function Layout({ children, onNavigate, currentPage, user }) {
     const handleSignOut = async () => {
         try {
@@ -16,8 +17,14 @@ export default function Layout({ children, onNavigate, currentPage, user }) {
 
     return (
         <div className="min-h-screen bg-slate-900 text-gray-100 flex">
-            <Sidebar onNavigate={onNavigate} currentPage={currentPage} />
-            <div className="flex-1">
+            {/* Barre latérale fixée (sticky) */}
+            <div className="sticky top-0 h-screen flex-shrink-0">
+                <Sidebar onNavigate={onNavigate} currentPage={currentPage} />
+            </div>
+
+            {/* Contenu principal */}
+            <div className="flex-1 flex flex-col">
+                {/* Header */}
                 <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 p-4 sticky top-0 z-10">
                     <div className="container mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -40,11 +47,16 @@ export default function Layout({ children, onNavigate, currentPage, user }) {
                         </div>
                     </div>
                 </header>
-                <main className="container mx-auto p-6">{children}</main>
+
+                {/* Contenu (scrollable) */}
+                <main className="container mx-auto p-6 flex-1 overflow-y-auto">
+                    {children}
+                </main>
             </div>
         </div>
     );
 }
+
 Layout.propTypes = {
     children: PropTypes.node.isRequired,
     onNavigate: PropTypes.func.isRequired,

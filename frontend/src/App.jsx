@@ -1,9 +1,10 @@
-import MainLayout from "../src/components/MainLayout";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import MainLayout from "./components/MainLayout";
 import Teams from "./pages/Teams";
 import Tournaments from "./pages/Tournaments";
-import { authApi } from "./lib/auth";
+import Characters from "./pages/Characters";
 import Auth from "./components/Auth";
+import { authApi } from "./lib/auth";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -12,7 +13,6 @@ function App() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Vérifie si un utilisateur est déjà connecté
         authApi.getCurrentUser().then((user) => {
             setUser(user);
             setLoading(false);
@@ -44,6 +44,8 @@ function App() {
                     <Tournaments />
                 ) : currentPage === "teams" ? (
                     <Teams />
+                ) : currentPage === "characters" ? (
+                    <Characters />
                 ) : null}
             </MainLayout>
             <Toaster position="top-right" />

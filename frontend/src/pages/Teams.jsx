@@ -1,160 +1,111 @@
-import { useState } from "react";
-import TeamCard from "../components/TeamCard";
+import { useEffect, useState } from "react";
 import { Search, Filter, Plus } from "lucide-react";
 
-// Sample data
-const teams = [
-    {
-        name: "Azeroth Avengers",
-        members: [
-            {
-                name: "Swift Falcon",
-                class: "paladin",
-                role: "tank",
-                classLabel: "Paladin",
-            },
-            {
-                name: "Mighty Lion",
-                class: "priest",
-                role: "healer",
-                classLabel: "Prêtre",
-            },
-            {
-                name: "Ancient Phoenix",
-                class: "mage",
-                role: "damage",
-                classLabel: "Mage",
-            },
-            {
-                name: "Daring Shadow",
-                class: "rogue",
-                role: "damage",
-                classLabel: "Voleur",
-            },
-            {
-                name: "Fierce Storm",
-                class: "warlock",
-                role: "damage",
-                classLabel: "Démoniste",
-            },
-        ],
-        rating: 2500,
-        achievements: [
-            "Winner - Dragon Isle Tournament 2024",
-            "Top 3 - Battle for Azeroth Cup",
-        ],
-        avatarUrl:
-            "https://images.unsplash.com/photo-1589254065878-42c9da997008?auto=format&fit=crop&q=80",
-    },
-    {
-        name: "Storm Raiders",
-        members: [
-            {
-                name: "Thunder Blade",
-                class: "warrior",
-                role: "tank",
-                classLabel: "Guerrier",
-            },
-            {
-                name: "Nature's Wrath",
-                class: "druid",
-                role: "healer",
-                classLabel: "Druide",
-            },
-            {
-                name: "Shadow Hunter",
-                class: "hunter",
-                role: "damage",
-                classLabel: "Chasseur",
-            },
-            {
-                name: "Frost Weaver",
-                class: "mage",
-                role: "damage",
-                classLabel: "Mage",
-            },
-            {
-                name: "Soul Reaper",
-                class: "warlock",
-                role: "damage",
-                classLabel: "Démoniste",
-            },
-        ],
-        rating: 2350,
-        achievements: [
-            "Runner-up - Shadowlands Championship",
-            "Most Valuable Team - Season 8",
-        ],
-        avatarUrl:
-            "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?auto=format&fit=crop&q=80",
-    },
-    {
-        name: "Horde Elite",
-        members: [
-            {
-                name: "Blood Guard",
-                class: "death-knight",
-                role: "tank",
-                classLabel: "Chevalier de la mort",
-            },
-            {
-                name: "Spirit Mender",
-                class: "shaman",
-                role: "healer",
-                classLabel: "Chaman",
-            },
-            {
-                name: "Void Walker",
-                class: "priest",
-                role: "damage",
-                classLabel: "Prêtre",
-            },
-            {
-                name: "Storm Archer",
-                class: "hunter",
-                role: "damage",
-                classLabel: "Chasseur",
-            },
-            {
-                name: "Fel Blade",
-                class: "demon-hunter",
-                role: "damage",
-                classLabel: "Chasseur de démons",
-            },
-        ],
-        rating: 2200,
-        achievements: [
-            "Winner - Arena Championship 2023",
-            "Perfect Season Record - Season 7",
-        ],
-        avatarUrl:
-            "https://images.unsplash.com/photo-1612404730960-5c71577fca11?auto=format&fit=crop&q=80",
-    },
-];
+// Hypothétique fonction pour supprimer une team côté API
+import {
+    generateTeams,
+    getCharacters,
+    getTeamsCharacters,
+    deleteTeamById,
+    CreateTeamAPI,
+} from "../lib/api";
+import TeamCard from "../components/TeamCard";
+import CreateTeam from "../components/CreateTeam";
+import GenerateTeamsModal from "../components/GenerateTeamsModal";
 
-const classColors = {
-    warrior: "from-[#C79C6E] to-[#8F7450]",
-    paladin: "from-[#F58CBA] to-[#BE6A92]",
-    hunter: "from-[#ABD473] to-[#7BA350]",
-    rogue: "from-[#FFF569] to-[#CCC44F]",
-    priest: "from-[#FFFFFF] to-[#CCCCCC]",
-    shaman: "from-[#0070DE] to-[#0058AE]",
-    mage: "from-[#69CCF0] to-[#4FA8CC]",
-    warlock: "from-[#9482C9] to-[#7666A5]",
-    monk: "from-[#00FF96] to-[#00CC78]",
-    druid: "from-[#FF7D0A] to-[#CC6408]",
-    "demon-hunter": "from-[#A330C9] to-[#8226A1]",
-    "death-knight": "from-[#C41F3B] to-[#9D182F]",
-};
+import useGameData from "../hooks/data-hook";
 
-const roleIcons = {
-    tank: "🛡️",
-    healer: "💚",
-    damage: "⚔️",
+const roleIconsMap = {
+    1: "🛡️", // tank
+    2: "⚔️", // damage
+    3: "💚", // healer
 };
 
 export default function Teams() {
     const [searchQuery, setSearchQuery] = useState("");
+    const [teams, setTeams] = useState([]);
+    const [showCreateTeam, setShowCreateTeam] = useState(false);
+    const [showGenerateTeams, setShowGenerateTeams] = useState(false);
+    const [availableCharacters, setAvailableCharacters] = useState([]);
+
+    const { classes } = useGameData();
+
+    // Récupère tous les personnages disponibles
+    useEffect(() => {
+        const fetchCharacters = async () => {
+            try {
+                const charactersData = await getCharacters();
+                setAvailableCharacters(charactersData);
+            } catch (error) {
+                console.error(
+                    "Erreur lors du chargement des personnages :",
+                    error
+                );
+            }
+        };
+        fetchCharacters();
+    }, []);
+
+    // Récupère les équipes
+    useEffect(() => {
+        const fetchTeams = async () => {
+            try {
+                const teamsData = await getTeamsCharacters();
+                setTeams(teamsData);
+                console.log(teamsData);
+            } catch (error) {
+                console.error("Erreur lors du chargement des équipes :", error);
+            }
+        };
+        fetchTeams();
+    }, []);
+
+    // Créer une équipe
+    const handleCreateTeam = async (newTeam) => {
+        try {
+            const createdTeam = await CreateTeamAPI(newTeam);
+            setTeams((prevTeams) => [...prevTeams, createdTeam]);
+        } catch (error) {
+            console.error("Erreur lors de la création de l'équipe :", error);
+        }
+    };
+
+    // Générer plusieurs équipes
+    const handleGenerateTeams = async (numberOfTeams) => {
+        try {
+            const generated = await generateTeams(numberOfTeams);
+            setTeams((prevTeams) => [...prevTeams, ...generated]);
+        } catch (error) {
+            console.error("Erreur lors de la génération des équipes :", error);
+        }
+    };
+
+    // Supprimer une équipe
+    const handleDeleteTeam = async (teamId) => {
+        try {
+            await deleteTeamById(teamId);
+            setTeams((prev) => prev.filter((team) => team.party_id !== teamId));
+        } catch (error) {
+            console.error("Erreur lors de la suppression de l'équipe :", error);
+        }
+    };
+
+    // Filtrage sur party_name ou sur le nom des personnages
+    const filteredTeams = teams.filter((team) => {
+        const lowerQuery = searchQuery.toLowerCase();
+
+        // Si party_name est undefined, on prend ""
+        const teamName = team.party_name || "";
+        const matchTeamName = teamName.toLowerCase().includes(lowerQuery);
+
+        // Si team.characters est undefined, on prend []
+        const matchAnyCharacter = (team.characters || []).some((c) => {
+            const charName = c.name || "";
+            return charName.toLowerCase().includes(lowerQuery);
+        });
+
+        return matchTeamName || matchAnyCharacter;
+    });
 
     return (
         <div>
@@ -165,10 +116,22 @@ export default function Teams() {
                         Browse and manage World of Warcraft tournament teams
                     </p>
                 </div>
-                <button className="btn btn-primary flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Create Team
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 transition-colors"
+                        onClick={() => setShowCreateTeam(true)}
+                    >
+                        <Plus className="h-5 w-5" />
+                        Create Team
+                    </button>
+                    <button
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 transition-colors"
+                        onClick={() => setShowGenerateTeams(true)}
+                    >
+                        <Plus className="h-5 w-5" />
+                        Generate Team
+                    </button>
+                </div>
             </div>
 
             <div className="flex gap-4 mb-8">
@@ -189,31 +152,38 @@ export default function Teams() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teams
-                    .filter(
-                        (team) =>
-                            team.name
-                                .toLowerCase()
-                                .includes(searchQuery.toLowerCase()) ||
-                            team.members.some(
-                                (member) =>
-                                    member.name
-                                        .toLowerCase()
-                                        .includes(searchQuery.toLowerCase()) ||
-                                    member.classLabel
-                                        .toLowerCase()
-                                        .includes(searchQuery.toLowerCase())
-                            )
-                    )
-                    .map((team, index) => (
+                {filteredTeams.map((team) => (
+                    <div key={team.party_id}>
                         <TeamCard
-                            key={index}
-                            {...team}
-                            classColors={classColors}
-                            roleIcons={roleIcons}
+                            partyId={team.party_id}
+                            partyName={team.party_name}
+                            characters={team.characters}
+                            avatarUrl={team.avatarUrl}
+                            classColors={classes}
+                            roleIcons={roleIconsMap}
+                            onDeleteTeam={handleDeleteTeam}
                         />
-                    ))}
+                    </div>
+                ))}
             </div>
+
+            {/* Modale de création */}
+            {showCreateTeam && (
+                <CreateTeam
+                    onClose={() => setShowCreateTeam(false)}
+                    onSave={handleCreateTeam}
+                    availableCharacters={availableCharacters}
+                />
+            )}
+
+            {/* Modale de génération */}
+            {showGenerateTeams && (
+                <GenerateTeamsModal
+                    onClose={() => setShowGenerateTeams(false)}
+                    onSave={handleGenerateTeams}
+                    availableCharacters={availableCharacters}
+                />
+            )}
         </div>
     );
 }
